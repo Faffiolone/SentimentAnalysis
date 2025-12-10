@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+# Importiamo l'istanza del modello che abbiamo appena creato
+from app.model.loader import model_instance
 
 # 1. Inizializziamo l'app
 app = FastAPI(
@@ -18,30 +20,28 @@ class SentimentResponse(BaseModel):
     sentiment: str
     confidence: float
 
-# 3. Endpoint di Health Check (fondamentale per MLOps e Docker)
+# 3. Endpoint di default (la nostra Home che consiglia reindirizzamento a docs)
+@app.get("/")
+def home():
+    return {"message": "Reputation Monitor API is running. Go to /docs for Swagger UI."}
+
+# 4. Endpoint di Health Check (fondamentale per MLOps e Docker)
 # Serve a capire se il container è vivo
 @app.get("/health")
 def health_check():
     return {"status": "ok", "message": "Service is running"}
 
-# 4. Endpoint di Previsione (Dummy per ora)
+# 5. Endpoint di Previsione (Dummy per ora)
 @app.post("/predict", response_model=SentimentResponse)
 def predict_sentiment(request: SentimentRequest):
-    """
-    Riceve un testo e restituisce il sentiment (Positive, Neutral, Negative).
-    """
-    # TODO: Qui caricheremo il modello ML vero!
-    # Per ora simuliamo una risposta logica
-    print(f"Analyzing text: {request.text}")
-    
-    # Logica finta (Mock) per testare l'API
-    mock_sentiment = "neutral"
-    if "ottimo" in request.text.lower():
-        mock_sentiment = "positive"
-    elif "pessimo" in request.text.lower():
-        mock_sentiment = "negative"
+    try:
+        # Chiamiamo la funzione predict del nostro loader
+        sentiment, confidence = model_instance.predict(request.text)
         
-    return {
-        "sentiment": mock_sentiment,
-        "confidence": 0.95
-    }
+        return {
+            "sentiment": sentiment,
+            "confidence": confidence
+        }
+    except Exception as e:
+        # Se qualcosa va storto, restituiamo errore 500
+        raise HTTPException(status_code=500, detail=str(e))

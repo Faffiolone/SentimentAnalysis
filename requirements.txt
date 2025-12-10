@@ -9,6 +9,10 @@ pydantic==2.6.0
 pandas
 scikit-learn
 joblib
+torch
+transformers
+scipy
+numpy
 
 # --- Testing ---
 pytest
