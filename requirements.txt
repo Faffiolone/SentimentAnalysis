@@ -1,0 +1,15 @@
+# --- Web API ---
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.6.0
+
+# --- Machine Learning (Base) ---
+# Per ora mettiamo scikit-learn/pandas per testare, 
+# poi aggiungeremo transformers/torch se usiamo RoBERTa
+pandas
+scikit-learn
+joblib
+
+# --- Testing ---
+pytest
+httpx
