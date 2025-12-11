@@ -1,3 +1,13 @@
+---
+title: Sentiment-Analysis
+emoji: 📊
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+app_port: 7860
+---
+
 # 📊 End-to-End MLOps Pipeline for Sentiment Analysis regarding Online Reputation
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
