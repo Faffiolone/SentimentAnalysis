@@ -108,3 +108,5 @@ jobs:
 # Se il codice rotto viene caricato comunque, a che serve il test?
 
 # Professionalmente si crea un ramo diverso della repository, un nuovo branch che non va in produzione, e si pusha li facendo partire CI/CD. POi se tutto ok viene anche aggiornato il main che è sacro
+
+# Aggiunta anche una funzione per Pushare il docker container in Hugging Face su uno space creato sul mio account, ho creato il token, lo space e modificato il file readme mettendo codice yaml all'inizio per Hugging face
