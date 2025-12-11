@@ -29,10 +29,16 @@ def log_prediction(query, text, sentiment, confidence):
         writer.writerow([datetime.now(), query, text, sentiment, confidence])
 
 # --- MODELLI DATI (Pydantic) ---
+# 1. Modello per la richiesta singola (/predict)
+class SentimentRequest(BaseModel):
+    text: str
+
+# 2. Modello per la richiesta complessa (/analyze)
 class AnalysisRequest(BaseModel):
-    query: str # Es. "Tesla"
+    query: str
     limit: int = 5
 
+# 3. Modello per il risultato singolo (usato da entrambi)
 class SingleResult(BaseModel):
     text: str
     sentiment: str
@@ -41,7 +47,7 @@ class SingleResult(BaseModel):
 class AnalysisResponse(BaseModel):
     query: str
     results: List[SingleResult]
-    summary: dict # Es. {"positive": 3, "negative": 1}
+    summary: dict
 
 # --- ENDPOINTS ---
 
@@ -52,6 +58,28 @@ def health_check():
         return {"status": "ok", "model_loaded": True}
     raise HTTPException(status_code=503, detail="Model not loaded")
 
+# --- ENDPOINT 1: PREVISIONE PURA (Utilizzabile per implementazioni dirette) ---
+@app.post("/predict", response_model=SingleResult)
+def predict_sentiment(request: SentimentRequest):
+    """
+    Analizza un singolo testo manuale.
+    Utile per test unitari o integrazioni dirette.
+    """
+    try:
+        sentiment, confidence = model_instance.predict(request.text)
+        
+        # Logghiamo usando "MANUAL" come query per distinguerlo nel CSV
+        log_prediction("MANUAL_INPUT", request.text, sentiment, confidence)
+        
+        return {
+            "text": request.text,
+            "sentiment": sentiment,
+            "confidence": confidence
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- ENDPOINT 2: Scarping + AI Classification
 @app.post("/analyze", response_model=AnalysisResponse)
 def analyze_company(request: AnalysisRequest):
     # --- DEBUG PRINT ---
