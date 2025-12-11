@@ -53,25 +53,23 @@ jobs:
       # E' solo un test, dopo che abbiamo fatto girare pytest su test_api.py, ora testiamo che il dockerfile funzioni creando l'immmagine che poi distruggiamo
       run: docker build -t reputation-monitor:test .
 
-"""
-I file vengono salvati nella repository PRIMA che il test parta. È il fatto che tu abbia "pushato" i file che sveglia il robot e gli fa iniziare il lavoro.
+# I file vengono salvati nella repository PRIMA che il test parta. È il fatto che tu abbia "pushato" i file che sveglia il robot e gli fa iniziare il lavoro.
 
-Ecco la sequenza temporale esatta:
+# Ecco la sequenza temporale esatta:
 
-⏳ La Timeline Reale
-Tu fai git push: I tuoi file vengono caricati su GitHub. In questo istante, il codice nella repository è già aggiornato (anche se fosse rotto).
+# ⏳ La Timeline Reale
+# Tu fai git push: I tuoi file vengono caricati su GitHub. In questo istante, il codice nella repository è già aggiornato (anche se fosse rotto).
 
-GitHub vede il cambiamento: "Ehi, è arrivato nuovo codice! Devo lanciare la pipeline".
+# GitHub vede il cambiamento: "Ehi, è arrivato nuovo codice! Devo lanciare la pipeline".
 
-Parte la CI (Test & Build): GitHub scarica quel codice appena caricato ed esegue i test e la build Docker.
+# Parte la CI (Test & Build): GitHub scarica quel codice appena caricato ed esegue i test e la build Docker.
 
-Esito:
+# Esito:
 
-🟢 Se passa: Accanto al tuo commit compare una spunta verde. Tutto bene.
+# 🟢 Se passa: Accanto al tuo commit compare una spunta verde. Tutto bene.
 
-🔴 Se fallisce: Accanto al tuo commit compare una croce rossa. MA i file restano lì. GitHub non cancella il tuo codice se il test fallisce; ti avvisa solo che è "bacato".
+# 🔴 Se fallisce: Accanto al tuo commit compare una croce rossa. MA i file restano lì. GitHub non cancella il tuo codice se il test fallisce; ti avvisa solo che è "bacato".
 
-Se il codice rotto viene caricato comunque, a che serve il test?
+# Se il codice rotto viene caricato comunque, a che serve il test?
 
-Professionalmente si crea un ramo diverso della repository, un nuovo branch che non va in produzione, e si pusha li facendo partire CI/CD. POi se tutto ok viene anche aggiornato il main che è sacro
-"""
+# Professionalmente si crea un ramo diverso della repository, un nuovo branch che non va in produzione, e si pusha li facendo partire CI/CD. POi se tutto ok viene anche aggiornato il main che è sacro
