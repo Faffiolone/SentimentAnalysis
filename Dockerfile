@@ -25,8 +25,18 @@ RUN python -c "from transformers import AutoTokenizer, AutoModelForSequenceClass
     AutoTokenizer.from_pretrained(name); \
     AutoModelForSequenceClassification.from_pretrained(name)"
 
-# 7. Esponiamo la porta 8000
-EXPOSE 8000
+# 7) Hugging Face richiede la porta 7860
+EXPOSE 7860
 
-# 8. Il comando che parte quando avvii il container
-CMD ["uvicorn", "app.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Dobbiamo creare un utente non-root per sicurezza (Hugging Face lo gradisce molto)
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
+
+WORKDIR $HOME/app
+
+COPY --chown=user . $HOME/app
+
+# Cambiamo il comando di avvio
+CMD ["uvicorn", "app.api.main:app", "--host", "0.0.0.0", "--port", "7860"]
