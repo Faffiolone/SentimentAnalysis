@@ -30,6 +30,24 @@ def test_prediction_negative():
     assert response.status_code == 200
     assert response.json()["sentiment"] == "negative"
 
+def test_analyze_endpoint():
+    """
+    Verifica che l'endpoint complesso /analyze risponda correttamente.
+    Nota: Questo test effettua una chiamata reale a Google News.
+    """
+    payload = {"query": "Apple", "limit": 1}
+    response = client.post("/analyze", json=payload)
+    
+    assert response.status_code == 200
+    data = response.json()
+    
+    # Verifichiamo la struttura della risposta
+    assert "query" in data
+    assert "results" in data
+    assert "summary" in data
+    # Verifichiamo che summary abbia i conteggi
+    assert "positive" in data["summary"]
+
 
 """
 scrivi sul terminale:   pytest    Serve per lanciare il test
