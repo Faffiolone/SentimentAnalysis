@@ -1,0 +1,77 @@
+name: MLOps CI Pipeline
+
+# 1. TRIGGER: Quando deve partire questa pipeline?
+# Parte su ogni "push" sul ramo main e su ogni "pull request"
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# Appena attivato il trigger, viene avviato build docker sotto che richieste l'esecuzione di run_test, se ok parte la creazione dell'immagine docker
+jobs:
+  # JOB 1: Esecuzione dei Test Automatici
+  run_tests:
+    runs-on: ubuntu-latest # Usa una macchina Linux di GitHub
+    
+    steps:
+    # A. Scarica il codice dalla tua repository
+    - name: Checkout code
+      uses: actions/checkout@v3 # serve proprio a dire al robot di GitHub: "Scarica la versione del codice contenuta in questo specifico commit che ha appena fatto scattare il trigger".
+      # Dobbiamo testare sui nuovi file che stiamo pushando, per questo ci assicuriamo di farlo con i nuovi file
+
+    # B. Installa Python 3.9 (lo stesso del Dockerfile)
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+        cache: 'pip' # <--- FONDAMENTALE: Cacha le librerie (così non riscarica le dipendenze ogni volta)
+
+    # C. Installa le librerie
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # D. Lancia Pytest
+    - name: Run Tests
+      run: |
+        python -m pytest
+
+  # JOB 2: Verifica della Build Docker
+  # Questo job parte SOLO se "run_tests" ha successo (needs: run_tests)
+  build_docker:
+    needs: run_tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Build Docker Image
+      # Prova a costruire l'immagine. Se il Dockerfile è rotto, questo step fallisce.
+      # E' solo un test, dopo che abbiamo fatto girare pytest su test_api.py, ora testiamo che il dockerfile funzioni creando l'immmagine che poi distruggiamo
+      run: docker build -t reputation-monitor:test .
+
+"""
+I file vengono salvati nella repository PRIMA che il test parta. È il fatto che tu abbia "pushato" i file che sveglia il robot e gli fa iniziare il lavoro.
+
+Ecco la sequenza temporale esatta:
+
+⏳ La Timeline Reale
+Tu fai git push: I tuoi file vengono caricati su GitHub. In questo istante, il codice nella repository è già aggiornato (anche se fosse rotto).
+
+GitHub vede il cambiamento: "Ehi, è arrivato nuovo codice! Devo lanciare la pipeline".
+
+Parte la CI (Test & Build): GitHub scarica quel codice appena caricato ed esegue i test e la build Docker.
+
+Esito:
+
+🟢 Se passa: Accanto al tuo commit compare una spunta verde. Tutto bene.
+
+🔴 Se fallisce: Accanto al tuo commit compare una croce rossa. MA i file restano lì. GitHub non cancella il tuo codice se il test fallisce; ti avvisa solo che è "bacato".
+
+Se il codice rotto viene caricato comunque, a che serve il test?
+
+Professionalmente si crea un ramo diverso della repository, un nuovo branch che non va in produzione, e si pusha li facendo partire CI/CD. POi se tutto ok viene anche aggiornato il main che è sacro
+"""

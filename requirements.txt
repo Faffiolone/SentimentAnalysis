@@ -16,4 +16,4 @@ numpy
 
 # --- Testing ---
 pytest
-httpx
+httpx==0.27.0

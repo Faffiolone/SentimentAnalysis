@@ -29,7 +29,12 @@ def home():
 # Serve a capire se il container è vivo
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "message": "Service is running"}
+    # VERIFICA: Controlliamo se il modello è stato caricato in memoria
+    if model_instance.model is not None:
+        return {"status": "ok", "model_loaded": True}
+    else:
+        # Se il modello non c'è, restituiamo errore 503 (Service Unavailable)
+        raise HTTPException(status_code=503, detail="Model not loaded yet")
 
 # 5. Endpoint di Previsione (Dummy per ora)
 @app.post("/predict", response_model=SentimentResponse)
