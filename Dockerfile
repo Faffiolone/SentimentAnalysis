@@ -38,5 +38,12 @@ WORKDIR $HOME/app
 
 COPY --chown=user . $HOME/app
 
-# Cambiamo il comando di avvio
-CMD ["uvicorn", "app.api.main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Copiamo lo script di avvio e lo rendiamo eseguibile
+COPY --chown=user entrypoint.sh $HOME/app/entrypoint.sh
+RUN chmod +x $HOME/app/entrypoint.sh
+
+# Esponiamo la porta 7860 (quella di Streamlit/Hugging Face)
+EXPOSE 7860
+
+# Il nuovo comando di avvio è il nostro script
+CMD ["./entrypoint.sh"]
