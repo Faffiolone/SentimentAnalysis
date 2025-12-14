@@ -66,11 +66,11 @@ jobs:
     # 2. Build e Push vero e proprio
     - name: Build and Push
       run: |
-        # Usa la variabile ${{ secrets.DOCKER_USERNAME }}
+        # Usa la variabile ${{ secrets.DOCKER_USERNAME }} creata nel repository
         IMAGE_TAG=${{ secrets.DOCKER_USERNAME }}/reputation-monitor:latest
         
         echo "Building image: $IMAGE_TAG"
-        docker build -t $IMAGE_TAG .
+        docker build -t $IMAGE_TAG .   # Il punto finale indica di usare il Dockerfile nella root della repo, cioè il punto sta a significare "cartella corrente" e va a cercare in automatico il Dockerfile
         
         echo "Pushing image to Docker Hub..."
         docker push $IMAGE_TAG

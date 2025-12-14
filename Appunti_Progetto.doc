@@ -1,0 +1,197 @@
+📚 Parte 1: Anatomia del Progetto (File Structure)
+
+    ROOT_PROJECT/
+    │
+    ├── .github/
+    │   └── workflows/
+    │       └── mlops_pipeline.yaml    # 🤖 Configurazione CI/CD (GitHub Actions)
+    │
+    ├── app/                           # 🧠 BACKEND (Logica e API)
+    │   ├── api/
+    │   │   ├── __init__.py
+    │   │   └── main.py                # Endpoint FastAPI (/analyze, /predict)
+    │   ├── model/
+    │   │   ├── __init__.py
+    │   │   └── loader.py              # Caricamento Modello RoBERTa (Singleton)
+    │   └── services/
+    │       ├── __init__.py
+    │       └── news_client.py         # Scraper Google News
+    │
+    ├── data/
+    │   └── new_data.csv               # 💾 Dati grezzi per il Retraining (Vuoto)
+    │
+    ├── src/
+    │   └── train.py                   # 🎓 Script di Retraining (Simulazione)
+    │
+    ├── streamlit_app/                 # 🎨 FRONTEND
+    │   └── app.py                     # Dashboard Interattiva
+    │
+    ├── tests/                         # 🧪 QUALITY ASSURANCE
+    │   └── test_api.py                # Test automatici (Pytest)
+    │
+    ├── Dockerfile                     # 🐳 Istruzioni per costruire l'immagine
+    ├── entrypoint.sh                  # 🚦 Script di avvio (FastAPI + Streamlit)
+    ├── requirements.txt               # 📦 Lista librerie (dipendenze)
+    ├── reputation_logs.csv            # 📝 Log monitoraggio (generato a runtime)
+    └── README.md                      # 📄 Documentazione pubblica
+
+    🛠️ 1. MLOps & Automazione (Root & Github)
+    Questi file trasformano il codice in un prodotto "vivo" e automatizzato.
+
+    .github/workflows/mlops_pipeline.yaml: È il "Direttore d'Orchestra". È un file di configurazione per GitHub Actions. Ogni volta che fai git push, questo file dice a GitHub di accendere un computer, scaricare il tuo codice, lanciare i test, provare ad addestrare il modello, costruire il container Docker e spedirlo su Hugging Face.
+
+    Dockerfile: È la "Ricetta". Dice a Docker come costruire il computer virtuale (Container). Specifica: "Usa Python 3.9, installa queste librerie, copia i miei file, dai i permessi all'utente".
+
+    entrypoint.sh: È il "Semaforo". Docker di solito lancia un solo programma. Dato che noi vogliamo sia l'API che Streamlit, questo script Bash li avvia entrambi: prima FastAPI in background (&), poi Streamlit in primo piano.
+
+    requirements.txt: La "Lista della Spesa". Elenca tutte le librerie necessarie (fastapi, streamlit, torch, GoogleNews, etc.) per far girare il progetto.
+
+    🧠 2. Il Backend (Cartella app/)
+    Il cervello del sistema che fa i calcoli.
+
+    app/api/main.py: Il "Centralino". Crea l'API con FastAPI. Definisce gli endpoint (es. /analyze, /health). Riceve le richieste dal frontend, coordina lo scraper e il modello, salva i log e risponde con i dati JSON.
+
+    app/services/news_client.py: L' "Investigatore". Contiene la classe che usa GoogleNews. Cerca le notizie, gestisce la paginazione, prova prima in inglese e poi fa fallback in italiano se non trova nulla.
+
+    app/model/loader.py: Il "Magazziniere". Si occupa di caricare il pesante modello RoBERTa in memoria una volta sola all'avvio (Singleton Pattern), evitando che il server esploda ricaricandolo a ogni richiesta.
+
+    🎨 3. Il Frontend (Cartella streamlit_app/)
+    La faccia che vede l'utente.
+
+    streamlit_app/app.py: L' "Interfaccia". È il sito web. Disegna i grafici, le barre di input e le tabelle. Non fa calcoli pesanti: prende l'input dell'utente, lo manda all'API (requests.post) e visualizza la risposta.
+
+    🎓 4. Continuous Training (Cartella src/ & data/)
+    La parte che gestisce l'evoluzione del modello.
+
+    src/train.py: Il "Simulatore". È lo script che verrebbe lanciato per ri-addestrare il modello. Controlla se ci sono nuovi dati e simula il processo di fine-tuning (poiché su GitHub non abbiamo GPU).
+
+    data/new_data.csv: Il "Carburante". È il file (attualmente vuoto) dove dovrebbero finire i dati etichettati per il retraining.
+
+    🧪 5. Testing & Logs
+    tests/: Contiene i test automatici (test_api.py) che verificano se l'API risponde correttamente.
+
+    reputation_logs.csv: Il "Diario di Bordo". Viene creato automaticamente dall'API. Ogni volta che qualcuno fa una previsione, viene scritta una riga qui. Streamlit legge questo file per la tab "Monitoring".
+
+🔄 Parte 2: I Flussi Logici (Architettura)
+
+    Qui disegniamo come si muovono i dati e le decisioni.
+
+
+    A. Architettura del Container (Come girano insieme)
+
+
+    Questo schema mostra come abbiamo risolto il problema di avere due programmi (Backend e Frontend) nello stesso spazio.
+
+    Snippet di codice
+
+    graph TD
+        User((Utente su Internet))
+        
+        subgraph "Docker Container (Hugging Face Space)"
+            direction TB
+            Entry[entrypoint.sh]
+            
+            subgraph "Processo 1 (Backend)"
+                FastAPI[FastAPI Server :8000]
+                Model[RoBERTa AI]
+                Scraper[Google News Scraper]
+            end
+            
+            subgraph "Processo 2 (Frontend)"
+                Streamlit[Streamlit App :7860]
+            end
+            
+            Entry -->|Avvia in background| FastAPI
+            Entry -->|Avvia in primo piano| Streamlit
+            
+            Streamlit <-->|HTTP Request (localhost)| FastAPI
+            FastAPI <--> Model
+            FastAPI --> Scraper
+        end
+        
+        User <-->|Vede solo porta 7860| Streamlit
+        Scraper <-->|Cerca Info| Google(Google Web)
+
+                Come fanno a convivere due programmi nello stesso container su Hugging Face?
+
+        **Spiegazione del processo**
+
+        - **Panoramica:** L'app è composta da due processi che convivono nello stesso container: un backend che espone un'API per l'analisi dei testi e un frontend Streamlit che fornisce l'interfaccia utente. Lo scopo è permettere allo user-facing frontend di richiedere analisi al backend in locale, mantenendo il modello in memoria per efficienza.
+
+        - **Esecuzione nel container:** Al container viene eseguito uno script di avvio che:
+            - avvia il server API in background;
+            - avvia l'app Streamlit in primo piano;
+            - mantiene Streamlit come processo principale esposto all'utente (porta pubblica), mentre l'API è raggiungibile in locale (porta interna).
+
+        - **Flusso dell'API (/analyze):**
+            - **Input:** richiesta JSON contenente la query e il numero massimo di risultati.
+            - **Scraping:** il servizio ricerca notizie (prima in inglese, poi fallback in italiano), raccoglie titoli e descrizioni e pre-processa il testo.
+            - **Inference:** ogni testo viene passato al modello (caricato una sola volta all'avvio) per ottenere la predizione di sentimento e la probabilità.
+            - **Logging:** ogni previsione viene registrata in un log (CSV) con timestamp, input e risultato per monitoring e retraining.
+            - **Output:** la risposta JSON contiene le statistiche aggregate (conteggi, percentuali) e la lista di risultati analizzati.
+
+        - **Retraining continuo (simulato):**
+            - Periodicamente o a seguito di nuovi dati, lo script di retraining verifica la presenza di dati etichettati.
+            - Se non ci sono dati nuovi, il retraining viene saltato senza interrompere la pipeline.
+            - Se ci sono dati, viene eseguita una simulazione di fine-tuning e i risultati vengono testati automaticamente.
+
+        - **Pipeline CI/CD (sintesi):**
+            - **Trigger:** un push sul repository avvia la pipeline.
+            - **Job 1 — Qualità & Training:** installa dipendenze, lancia la simulazione di retraining (se necessario) e poi esegue i test automatici. Se i test falliscono, la pipeline si blocca.
+            - **Job 2 — Packaging:** solo se i test passano, viene costruita l'immagine Docker e (opzionalmente) pubblicata su un registry.
+            - **Job 3 — Deploy:** se il packaging ha successo, l'immagine viene distribuita alla piattaforma di hosting (es. Space). Al termine l'app aggiornata è disponibile online.
+            - **Precisione operativa:** il retraining è condizionale (salta se mancano dati); l'esecuzione dei test è il gate principale che previene il deploy di codice rotto.
+
+
+    B. Il Flusso dell'API (/analyze)
+
+
+
+    Cosa succede esattamente quando l'utente clicca "Analyze"?
+
+    1.  INPUT: Arriva richiesta JSON {"query": "Tesla", "limit": 5}.
+
+    2.  SCRAPING:
+
+        Cerco "Tesla" su Google News (EN).
+
+        Scarico Titoli + Descrizioni.
+
+        LOOP (Ciclo For): Per ogni notizia trovata:
+
+            Pulisco il testo.
+
+            Inference: Passo il testo a RoBERTa -> Ottengo "Positive" (0.98).
+
+            Logging: Scrivo su reputation_logs.csv.
+
+            Aggiorno i contatori (es. Positive +1).
+
+    3.  OUTPUT: Restituisco JSON con statistiche e lista risultati.
+
+    C. La Pipeline CI/CD (Il file YAML)
+    Cosa succede su GitHub quando fai git push? È una catena di montaggio.
+
+    Snippet di codice
+
+        Push[Git Push] -->|Trigger| GitHubActions   Questo è il trigger, quando fascio push sul ramo main.
+        
+        subgraph "Job 1: Quality & Training"    Job centrale per il controllo e retraining del modello (se non passa i test questo viene bloccato il commit)
+            Install[Install Dependencies] --> Retrain[Simulazione Retraining]   Prima di tutto installa le dipendenze, poi fa il retrain
+            Retrain --> Test[Run Pytest]    Fatto il retrain, eseguiamo il test con pytest (Se fallisce qui, BLOCCA TUTTO 🛑).                             
+        end
+        
+        subgraph "Job 2: Packaging"     
+            Test -->|Se Verde| Build[Docker Build]
+            Build --> PushHub[Push to DockerHub]
+        end
+        
+        subgraph "Job 3: Deploy"
+            PushHub -->|Se Verde| Deploy[Deploy to Hugging Face]
+        end
+        
+        Deploy -->|Fine| LiveApp((App Aggiornata))
+        
+    Punto Critico: Se Run Pytest fallisce (X Rossa), il Docker Build non parte nemmeno. Questo protegge la produzione da codice rotto.
+
+    Punto Intelligente: Il retraining (Job 1) controlla se new_data.csv è vuoto. Se è vuoto, dice "Skipping" e prosegue senza rompere nulla.
