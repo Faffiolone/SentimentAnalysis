@@ -16,6 +16,18 @@ app_port: 7860
 ![Deployment](https://img.shields.io/badge/deployed%20on-HuggingFace-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+### 👤 Author
+
+**Fabio Celaschi**
+
+<a href="https://www.linkedin.com/in/fabio-celaschi-4371bb92">
+  <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+</a>
+
+<a href="https://www.instagram.com/fabiocelaschi/">
+  <img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram" />
+</a>
+
 ## 🚀 Project Overview
 
 **MachineInnovators Inc.** focuses on scalable, production-ready machine learning applications. This project is a comprehensive **MLOps solution** designed to monitor online company reputation through automated sentiment analysis of real-time news.
@@ -134,17 +146,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 📝 License
 Distributed under the MIT License. See LICENSE for more information.
-
----
-
-### 👤 Author
-
-**Fabio Celaschi**
-
-<a href="https://www.linkedin.com/in/fabio-celaschi-4371bb92">
-  <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
-</a>
-
-<a href="https://www.instagram.com/fabiocelaschi/">
-  <img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram" />
-</a>
