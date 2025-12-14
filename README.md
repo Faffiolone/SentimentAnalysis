@@ -20,12 +20,13 @@ app_port: 7860
 
 **MachineInnovators Inc.** focuses on scalable, production-ready machine learning applications. This project is a comprehensive **MLOps solution** designed to monitor online company reputation through automated sentiment analysis of real-time news.
 
-Unlike standard static notebooks, this repository demonstrates a **full-cycle ML workflow**. The system scrapes live data from **Google News**, analyzes sentiment using a **RoBERTa Transformer** model, and visualizes insights via an interactive dashboard, all orchestrate within a Dockerized environment.
+Unlike standard static notebooks, this repository demonstrates a **full-cycle ML workflow**. The system scrapes live data from **Google News**, analyzes sentiment using a **RoBERTa Transformer** model, and visualizes insights via an interactive dashboard, all orchestrated within a Dockerized environment.
 
 ### Key Features
 * **Real-Time Data Ingestion:** Automated scraping of Google News for target brand keywords.
 * **State-of-the-Art NLP:** Utilizes `twitter-roberta-base-sentiment` for high-accuracy classification.
 * **Full-Stack Architecture:** Integrates a **FastAPI** backend for inference and a **Streamlit** frontend for visualization in a single container.
+* **Automated Continuous Training (CT):** Implements a pipeline logic that checks for new data and simulates model fine-tuning during CI/CD execution.
 * **CI/CD Automation:** Robust GitHub Actions pipeline for automated testing, building, and deployment to Hugging Face Spaces.
 * **Embedded Monitoring:** Basic logging system to track model predictions and sentiment distribution over time.
 
@@ -57,6 +58,7 @@ The project follows a rigorous MLOps pipeline to ensure reliability and speed of
 
 3.  **CI/CD Pipeline (GitHub Actions):**
     * **Trigger:** Pushes to the `main` branch.
+    * **Continuous Training:** Checks the `data/` directory for new labeled datasets. If found, initiates a training simulation to demonstrate the retraining lifecycle.
     * **Test:** Executes `pytest` suite to verify API endpoints (`/health`, `/analyze`) and model loading.
     * **Build:** Verifies Docker image creation.
     * **Deploy:** Automatically pushes the validated code to Hugging Face Spaces.
@@ -74,50 +76,52 @@ The project follows a rigorous MLOps pipeline to ensure reliability and speed of
 │   ├── api/             # FastAPI endpoints (main.py)
 │   ├── model/           # Model loader logic (RoBERTa)
 │   └── services/        # Google News scraping logic
+├── data/                # Dataset storage for retraining
 ├── streamlit_app/       # Frontend Application Code (app.py)
-├── src/                 # Training simulation scripts
+├── src/                 # Training scripts (Simulation)
 ├── tests/               # Unit and integration tests (Pytest)
 ├── Dockerfile           # Container configuration
 ├── entrypoint.sh        # Startup script for dual-process execution
 ├── requirements.txt     # Project dependencies
+├── Appunti_Progetto.doc # Note and explanation of the project
 └── README.md            # Project documentation
+
 
 💻 Installation & Usage
 To run this project locally using Docker (Recommended):
 
-1. Clone the repository
-Bash
-
+### 1. Clone the repository
+```bash
 git clone [https://github.com/YOUR_USERNAME/SentimentAnalysis.git](https://github.com/YOUR_USERNAME/SentimentAnalysis.git)
 cd SentimentAnalysis
-2. Build the Docker Image
-Bash
 
+### 2. Build the Docker Image
+```bash
 docker build -t reputation-monitor .
-3. Run the Container
-Bash
 
+### 3. Run the Container
+```bash
 docker run -p 7860:7860 reputation-monitor
 Access the application at http://localhost:7860
 
-Manual Installation (No Docker)
+Manual Installation (No Docker):
 If you prefer running it directly with Python:
 
-Install dependencies:
+    1. Install dependencies:
 
-Bash
+    ```bash
+    pip install -r requirements.txt
 
-pip install -r requirements.txt
-Start the Backend (FastAPI):
+    2. Start the Backend (FastAPI):
 
-Bash
+    ```bash
+    uvicorn app.api.main:app --host 0.0.0.0 --port 8000 --reload
 
-uvicorn app.api.main:app --host 0.0.0.0 --port 8000 --reload
-Start the Frontend (Streamlit) in a new terminal:
+    3. Start the Frontend (Streamlit) in a new terminal:
 
-Bash
+    ```bash
+    streamlit run streamlit_app/app.py
 
-streamlit run streamlit_app/app.py
 ⚠️ Limitations & Future Roadmap
 Data Persistence: Currently, monitoring logs are stored in an ephemeral CSV file. In a production environment, this would be replaced by a persistent database (e.g., PostgreSQL) to ensure data retention across container restarts.
 
