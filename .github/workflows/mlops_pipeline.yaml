@@ -33,6 +33,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Continuous Training (Simulation)
+      run: |
+        # Eseguiamo lo script che controlla i dati e simula il training
+        python src/train.py
+
     # D. Lancia Pytest
     - name: Run Tests
       run: |
@@ -69,6 +74,7 @@ jobs:
         
         echo "Pushing image to Docker Hub..."
         docker push $IMAGE_TAG
+  # JOB 3: Push su Hugging Face
   deploy_to_huggingface:
     needs: run_tests  # Parte solo se i test passano
     runs-on: ubuntu-latest
@@ -89,6 +95,8 @@ jobs:
         run: |
           # Uso --force per imporre l'aggiornamento di GitHub su Hugging face ignorando la storia di quello che c'è all'interno di Hugging face (se ne frega di quello che c'è dentro, cancella e riaggiorna)
           git push --force https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/$SPACE_NAME main
+
+
 # I file vengono salvati nella repository PRIMA che il test parta. È il fatto che tu abbia "pushato" i file che sveglia il robot e gli fa iniziare il lavoro.
 
 # Ecco la sequenza temporale esatta:
