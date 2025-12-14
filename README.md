@@ -30,7 +30,7 @@ app_port: 7860
 
 ## 🚀 Project Overview
 
-**MachineInnovators Inc.** focuses on scalable, production-ready machine learning applications. This project is a comprehensive **MLOps solution** designed to monitor online company reputation through automated sentiment analysis of real-time news.
+This project is a comprehensive **MLOps solution** designed to monitor online company reputation through automated sentiment analysis of real-time news. It was developed to demonstrate **scalable, production-ready machine learning engineering** capabilities.
 
 Unlike standard static notebooks, this repository demonstrates a **full-cycle ML workflow**. The system scrapes live data from **Google News**, analyzes sentiment using a **RoBERTa Transformer** model, and visualizes insights via an interactive dashboard, all orchestrated within a Dockerized environment.
 
